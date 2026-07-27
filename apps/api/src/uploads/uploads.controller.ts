@@ -2,7 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
+  Delete,
+  Param,
   Post,
+  Patch,
   Req,
   UploadedFile,
   UseGuards,
@@ -14,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { QuotaGuard } from '../storage/quota.guard';
 import { UploadImageDto } from './dto/upload-image.dto';
 import { UploadsService } from '../uploads/uploads.service';
+import { UpdateImageDto } from './dto/update-image.dto';
 import { JwtUser } from '../auth/types/types';
 
 interface RequestWithUser extends Request {
@@ -54,5 +59,39 @@ export class UploadsController {
     }
 
     return this.uploadsService.handleUpload(req.user.userId, file, dto);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getOne(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.uploadsService.getById(id, req.user.userId);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateImageDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.uploadsService.updateImage(id, req.user.userId, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteOne(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.uploadsService.deleteById(id, req.user.userId);
+  }
+
+  @Post(':id/bookmark')
+  @UseGuards(JwtAuthGuard)
+  async bookmark(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.uploadsService.addBookmark(id, req.user.userId);
+  }
+
+  @Delete(':id/bookmark')
+  @UseGuards(JwtAuthGuard)
+  async unbookmark(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.uploadsService.removeBookmark(id, req.user.userId);
   }
 }

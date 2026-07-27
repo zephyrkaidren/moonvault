@@ -1,0 +1,148 @@
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Job } from 'bullmq';
+import * as exifr from 'exifr';
+import { Inject, Logger } from '@nestjs/common';
+import sharp from 'sharp';
+import phash from 'sharp-phash';
+import dist from 'sharp-phash/distance';
+import { PrismaService } from '../prisma/prisma.service';
+import {
+  STORAGE_PROVIDER,
+  type StorageProvider,
+} from '../storage/storage-provider.interface';
+
+interface ProcessImageJobData {
+  imageId: string;
+}
+
+interface ExtractedExif {
+  Make?: string;
+  Model?: string;
+  LensModel?: string;
+  ExposureTime?: number;
+  FNumber?: number;
+  ISO?: number;
+  FocalLength?: number;
+  DateTimeOriginal?: Date;
+}
+
+const DUPLICATE_DISTANCE_THRESHOLD = 10; // out of 64 bits; lower = stricter match
+
+@Processor('image-processing')
+export class ImageProcessor extends WorkerHost {
+  private readonly logger = new Logger(ImageProcessor.name);
+
+  constructor(
+    private prisma: PrismaService,
+    @Inject(STORAGE_PROVIDER) private storageProvider: StorageProvider,
+  ) {
+    super();
+  }
+
+  async process(job: Job<ProcessImageJobData>): Promise<void> {
+    const { imageId } = job.data;
+
+    const image = await this.prisma.image.findUnique({
+      where: { id: imageId },
+    });
+    if (!image) {
+      this.logger.warn(`Image ${imageId} not found, skipping`);
+      return;
+    }
+
+    await this.prisma.image.update({
+      where: { id: imageId },
+      data: { processingStatus: 'processing' },
+    });
+
+    try {
+      const original = await this.storageProvider.download(image.storageKey);
+      const metadata = await sharp(original).metadata();
+
+      // Calculate orientation based on aspect ratio
+      const width = metadata.width ?? 0;
+      const height = metadata.height ?? 0;
+      const ratio = width && height ? width / height : 1;
+      const orientation =
+        ratio > 1.05 ? 'landscape' : ratio < 0.95 ? 'portrait' : 'square';
+
+      const rawExif = (await exifr.parse(original, {
+        pick: [
+          'Make',
+          'Model',
+          'LensModel',
+          'ExposureTime',
+          'FNumber',
+          'ISO',
+          'FocalLength',
+          'DateTimeOriginal',
+        ],
+      })) as ExtractedExif | undefined;
+
+      const exifData = rawExif
+        ? {
+            ...rawExif,
+            DateTimeOriginal: rawExif.DateTimeOriginal
+              ? rawExif.DateTimeOriginal.toISOString()
+              : undefined,
+          }
+        : undefined;
+
+      const hash = await phash(original);
+
+      const candidateMatches = await this.prisma.image.findMany({
+        where: {
+          userId: image.userId,
+          id: { not: image.id },
+          phash: { not: null },
+          processingStatus: 'ready',
+        },
+        select: { id: true, phash: true },
+      });
+
+      let duplicateOfId: string | null = null;
+      for (const candidate of candidateMatches) {
+        if (
+          candidate.phash &&
+          dist(hash, candidate.phash) <= DUPLICATE_DISTANCE_THRESHOLD
+        ) {
+          duplicateOfId = candidate.id;
+          break;
+        }
+      }
+
+      const thumbnailBuffer = await sharp(original)
+        .resize({ width: 400, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+
+      const thumbnailKey = `${image.storageKey}-thumb.webp`;
+      await this.storageProvider.upload(
+        thumbnailBuffer,
+        thumbnailKey,
+        'image/webp',
+      );
+
+      await this.prisma.image.update({
+        where: { id: imageId },
+        data: {
+          width: metadata.width ?? null,
+          height: metadata.height ?? null,
+          orientation,
+          thumbnailKey,
+          phash: hash,
+          duplicateOfId,
+          processingStatus: 'ready',
+          ...(exifData && Object.keys(exifData).length > 0 ? { exifData } : {}),
+        },
+      });
+    } catch (err) {
+      this.logger.error(`Processing failed for image ${imageId}`, err);
+      await this.prisma.image.update({
+        where: { id: imageId },
+        data: { processingStatus: 'failed' },
+      });
+      throw err; // rethrow so BullMQ records the job as failed, not silently swallowed
+    }
+  }
+}

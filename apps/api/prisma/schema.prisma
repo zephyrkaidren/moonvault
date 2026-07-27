@@ -22,21 +22,66 @@ model User {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   images            Image[]
+  bookmarks Bookmark[]
 }
 
 model Image {
-  id               String   @id @default(uuid())
-  userId           String
-  storageKey       String   @unique
-  originalFilename String
-  mimeType         String
-  sizeBytes        Int
-  isPublic         Boolean  @default(false)
-  title            String?
-  createdAt        DateTime @default(now())
+  id                String   @id @default(uuid())
+  userId            String
+  storageKey        String   @unique
+  originalFilename  String
+  mimeType          String
+  sizeBytes         Int
+  isPublic          Boolean  @default(false)
+  title             String?
+  createdAt         DateTime @default(now())
+
+  processingStatus  String   @default("pending")
+  thumbnailKey      String?
+  width             Int?
+  height            Int?
+  phash             String?
+  duplicateOfId     String?
+  exifData          Json?
+  orientation String? // 'portrait' | 'landscape' | 'square'
+
+  bookmarks Bookmark[]
+  tags ImageTag[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isPublic])
+  @@index([phash])
+}
+
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  imageId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, imageId])
+  @@index([imageId])
+}
+
+
+model Tag {
+  id     String     @id @default(uuid())
+  name   String     @unique
+  images ImageTag[]
+}
+
+model ImageTag {
+  imageId String
+  tagId   String
+
+  image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([imageId, tagId])
 }
