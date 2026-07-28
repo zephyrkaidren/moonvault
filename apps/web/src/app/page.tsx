@@ -18,7 +18,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen">
       <header className="flex items-center justify-between px-8 py-4">
-        <span className="font-display font-semibold text-lg">Print Room</span>
+        <span className="font-display font-semibold text-lg">Moonvault</span>
         <nav className="flex items-center gap-4 text-sm">
           <a href="/login" className="text-slate">
             Log in

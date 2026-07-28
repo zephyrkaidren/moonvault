@@ -42,7 +42,7 @@ export default function RegisterPage() {
       onSubmit={handleSubmit}
       className="w-full max-w-sm bg-paper-light rounded-lg p-8 border border-ink/10"
     >
-      <h1 className="font-display font-semibold text-xl mb-6">Print Room</h1>
+      <h1 className="font-display font-semibold text-xl mb-6">Moonvault</h1>
 
       {errors.length > 0 && (
         <div className="mb-4" role="alert">

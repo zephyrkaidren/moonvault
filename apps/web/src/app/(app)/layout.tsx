@@ -12,7 +12,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen">
       <header className="flex items-center justify-between px-8 py-4 border-b border-ink/10">
-        <span className="font-display font-semibold text-lg">Moon Vault</span>
+        <h1 className="font-display font-semibold text-xl mb-6">Moonvault</h1>
         <nav className="flex items-center gap-6 text-sm text-slate">
           <a href="/gallery">Explore</a>
           <a href="/gallery/ranking">Ranking</a>
