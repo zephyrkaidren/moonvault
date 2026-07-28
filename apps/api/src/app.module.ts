@@ -10,6 +10,7 @@ import { GalleryModule } from './gallery/gallery.module';
 import { GalleryService } from './gallery/gallery.service';
 import { GalleryController } from './gallery/gallery.controller';
 import { ProfileModule } from './profile/profile.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ProfileModule } from './profile/profile.module';
     UploadsModule,
     GalleryModule,
     ProfileModule,
+    EmailModule,
   ],
   controllers: [AppController, GalleryController],
   providers: [AppService, GalleryService],

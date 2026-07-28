@@ -19,6 +19,13 @@ services:
     volumes:
       - redisdata:/data
 
+  mailhog:
+    image: mailhog/mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   pgdata:
   redisdata:
