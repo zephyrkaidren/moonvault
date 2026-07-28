@@ -1,122 +1,56 @@
-'use client';
+import { RegisterForm } from '@/components/register-form';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { PasswordStrength } from '@/components/password-strength';
-import { extractErrorMessages } from '@/lib/error-message';
+interface PreviewItem {
+  id: string;
+  thumbnailUrl: string | null;
+  width: number | null;
+  height: number | null;
+}
 
-export default function RegisterPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [errors, setErrors] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setErrors([]);
-
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, username, password, displayName }),
+export default async function RegisterPage() {
+  let previewItems: PreviewItem[] = [];
+  try {
+    const res = await fetch(`${process.env.API_URL}/gallery?limit=6`, {
+      cache: 'no-store',
     });
-
-    setLoading(false);
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      setErrors(extractErrorMessages(body));
-      return;
+    if (res.ok) {
+      const data = await res.json();
+      previewItems = data.items;
     }
-
-    router.push('/dashboard');
-    router.refresh();
+  } catch {
+    previewItems = [];
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full max-w-sm bg-paper-light rounded-lg p-8 border border-ink/10"
-    >
-      <h1 className="font-display font-semibold text-xl mb-6">Moonvault</h1>
-
-      {errors.length > 0 && (
-        <div className="mb-4" role="alert">
-          {errors.map((err, i) => (
-            <p key={i} className="text-accent text-sm">
-              {err}
-            </p>
-          ))}
-        </div>
-      )}
-
-      <label className="block text-sm mb-1" htmlFor="displayName">
-        Display name
-      </label>
-      <input
-        id="displayName"
-        required
-        value={displayName}
-        onChange={(e) => setDisplayName(e.target.value)}
-        className="w-full mb-4 px-3 py-2 rounded border border-ink/20 bg-paper text-sm"
-      />
-
-      <label className="block text-sm mb-1" htmlFor="username">
-        Username
-      </label>
-      <input
-        id="username"
-        required
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="letters, numbers, underscores only"
-        className="w-full mb-4 px-3 py-2 rounded border border-ink/20 bg-paper text-sm"
-      />
-
-      <label className="block text-sm mb-1" htmlFor="email">
-        Email
-      </label>
-      <input
-        id="email"
-        type="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full mb-4 px-3 py-2 rounded border border-ink/20 bg-paper text-sm"
-      />
-
-      <label className="block text-sm mb-1" htmlFor="password">
-        Password
-      </label>
-      <input
-        id="password"
-        type="password"
-        required
-        minLength={8}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full mb-1 px-3 py-2 rounded border border-ink/20 bg-paper text-sm"
-      />
-      <PasswordStrength password={password} />
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-accent text-paper-light rounded-full py-2 text-sm font-medium disabled:opacity-60 mt-2"
-      >
-        {loading ? 'Creating account…' : 'Create account'}
-      </button>
-
-      <p className="text-sm text-slate mt-4 text-center">
-        Already have an account?{' '}
-        <a href="/login" className="text-accent">
-          Log in
-        </a>
-      </p>
-    </form>
+    <div className="w-full max-w-3xl flex rounded-xl overflow-hidden border border-ink/10 min-h-105">
+      <div className="flex-1 bg-ink p-3 hidden sm:block">
+        {previewItems.length > 0 ? (
+          <div className="columns-2 gap-2">
+            {previewItems.map((item) =>
+              item.thumbnailUrl && item.width && item.height ? (
+                <div
+                  key={item.id}
+                  className="break-inside-avoid mb-2 rounded-md overflow-hidden"
+                >
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.thumbnailUrl}`}
+                    alt=""
+                    style={{ aspectRatio: `${item.width} / ${item.height}` }}
+                    className="w-full object-cover"
+                  />
+                </div>
+              ) : null,
+            )}
+          </div>
+        ) : (
+          <div className="h-full flex items-center justify-center text-paper-light/50 text-sm">
+            Your art could be here.
+          </div>
+        )}
+      </div>
+      <div className="flex-1 bg-paper-light p-8 flex flex-col justify-center">
+        <RegisterForm />
+      </div>
+    </div>
   );
 }
