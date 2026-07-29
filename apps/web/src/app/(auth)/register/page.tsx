@@ -1,4 +1,5 @@
 import { RegisterForm } from '@/components/register-form';
+import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface PreviewItem {
   id: string;
@@ -33,7 +34,7 @@ export default async function RegisterPage() {
                   className="break-inside-avoid mb-2 rounded-md overflow-hidden"
                 >
                   <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.thumbnailUrl}`}
+                    src={resolveImageUrl(item.thumbnailUrl) ?? undefined}
                     alt=""
                     style={{ aspectRatio: `${item.width} / ${item.height}` }}
                     className="w-full object-cover"

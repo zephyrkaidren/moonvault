@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Avatar } from './avatar';
 import { UploadForm } from './upload-form';
+import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface VaultItem {
   id: string;
@@ -147,7 +148,7 @@ export function DashboardClient({
                 <a key={item.id} href={`/images/${item.id}`} className="w-20 relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.url}`}
+                    src={resolveImageUrl(item.url) ?? undefined}
                     alt=""
                     className="w-full aspect-square object-cover rounded-md opacity-60"
                   />
@@ -170,7 +171,7 @@ export function DashboardClient({
                 <a key={item.id} href={`/images/${item.id}`} className="w-50 relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.url}`}
+                    src={resolveImageUrl(item.url) ?? undefined}
                     alt=""
                     className="w-full aspect-square object-cover rounded-md"
                   />
@@ -199,7 +200,7 @@ export function DashboardClient({
                     {item.thumbnailUrl && item.width && item.height ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL}${item.thumbnailUrl}`}
+                        src={resolveImageUrl(item.url) ?? undefined}
                         alt={item.title ?? 'Untitled artwork'}
                         style={{ aspectRatio: `${item.width} / ${item.height}` }}
                         className="w-full object-cover"

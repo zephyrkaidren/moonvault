@@ -1,5 +1,6 @@
 'use client';
 
+import { resolveImageUrl } from '@/lib/resolve-image-url';
 import { useState } from 'react';
 
 interface VaultItem {
@@ -41,7 +42,7 @@ export function VaultList({ items }: { items: VaultItem[] }) {
           {item.thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`${process.env.NEXT_PUBLIC_API_URL}${item.thumbnailUrl}`}
+              src={resolveImageUrl(item.thumbnailUrl) ?? undefined}
               alt=""
               className="w-10 h-10 rounded object-cover"
             />

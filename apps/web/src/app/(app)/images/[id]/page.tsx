@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/api';
 import { BookmarkButton } from '@/components/bookmark-button';
 import { ImageOwnerControls } from '@/components/image-owner-controls';
 import { ImageWithLoader } from '@/components/image-with-loader';
+import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface ExifData {
   Make?: string;
@@ -54,7 +55,7 @@ export default async function ImageDetailPage({
       {image.width && image.height ? (
         <div className="w-full rounded-lg mb-4 overflow-hidden">
           <ImageWithLoader
-            src={`${process.env.NEXT_PUBLIC_API_URL}${image.url}`}
+            src={resolveImageUrl(image.url)!}
             alt={image.title ?? 'Untitled artwork'}
             width={image.width}
             height={image.height}
@@ -62,7 +63,7 @@ export default async function ImageDetailPage({
         </div>
       ) : (
         <img
-          src={`${process.env.NEXT_PUBLIC_API_URL}${image.url}`}
+          src={resolveImageUrl(image.url) ?? undefined}
           alt={image.title ?? 'Untitled artwork'}
           className="w-full rounded-lg mb-4"
         />

@@ -1,5 +1,6 @@
 import { serverFetch } from '@/lib/api';
 import { ImageWithLoader } from '@/components/image-with-loader';
+import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface RankingItem {
   rank: number;
@@ -70,7 +71,7 @@ export default async function RankingPage({
               <a href={`/images/${item.id}`}>
                 {item.thumbnailUrl && item.width && item.height ? (
                   <ImageWithLoader
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.thumbnailUrl}`}
+                    src={resolveImageUrl(item.thumbnailUrl)!}
                     alt={item.title ?? 'Untitled artwork'}
                     width={item.width}
                     height={item.height}

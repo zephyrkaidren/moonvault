@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface PreviewItem {
   id: string;
@@ -72,7 +73,7 @@ export function TagCarousel({ tags }: { tags: TagGroup[] }) {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${item.thumbnailUrl}`}
+                  src={resolveImageUrl(item.thumbnailUrl) ?? undefined}
                   alt={item.title ?? 'Untitled artwork'}
                   className="w-full h-full object-cover"
                 />

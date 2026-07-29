@@ -3,6 +3,7 @@ import { StorageService } from '../storage.service';
 import { MeController } from '../me.controller';
 import { STORAGE_PROVIDER } from './storage-provider.interface';
 import { LocalDiskStorageProvider } from './local-disk-storage.provider';
+import { B2StorageProvider } from './b2-storage.provider';
 import { UploadsModule } from '../uploads/uploads.module';
 
 @Module({
@@ -12,7 +13,10 @@ import { UploadsModule } from '../uploads/uploads.module';
     StorageService,
     {
       provide: STORAGE_PROVIDER,
-      useClass: LocalDiskStorageProvider,
+      useClass:
+        process.env.STORAGE_PROVIDER_TYPE === 'b2'
+          ? B2StorageProvider
+          : LocalDiskStorageProvider,
     },
   ],
   exports: [StorageService, STORAGE_PROVIDER],

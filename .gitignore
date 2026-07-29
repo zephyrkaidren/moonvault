@@ -13,3 +13,5 @@ coverage/
 apps/api/src/prisma/generated/
 **/prisma/generated/
 apps/api/storage-data/
+
+key.md
