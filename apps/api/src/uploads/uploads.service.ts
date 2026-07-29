@@ -230,6 +230,7 @@ export class UploadsService {
         sizeBytes: image.sizeBytes,
         duplicateOfId: image.duplicateOfId,
         tags: image.tags.map((it) => it.tag.name),
+        url: await this.storageProvider.getReadStreamUrl(image.storageKey),
         thumbnailUrl: image.thumbnailKey
           ? await this.storageProvider.getReadStreamUrl(image.thumbnailKey)
           : null,

@@ -11,6 +11,7 @@ interface VaultItem {
   processingStatus: string;
   duplicateOfId: string | null;
   thumbnailUrl: string | null;
+  url: string;
   width: number | null;
   height: number | null;
   tags: string[];
@@ -28,12 +29,6 @@ type Filter = 'all' | 'processing' | 'ready' | 'public' | 'private';
 
 function formatGb(bytes: number): string {
   return (bytes / 1024 ** 3).toFixed(1);
-}
-
-// Calculate aspect ratio percentage for masonry item
-function getAspectRatioPercent(width: number | null, height: number | null): string {
-  if (!width || !height) return '100%'; // Default to square
-  return `${(height / width) * 100}%`;
 }
 
 export function DashboardClient({
@@ -147,14 +142,19 @@ export function DashboardClient({
             <div className="text-xs font-medium text-slate mb-2">
               PROCESSING ({processing.length})
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div className="flex gap-2.5 flex-wrap">
               {processing.map((item) => (
-                <div key={item.id} className="relative">
-                  <div className="w-full bg-ink/10 rounded-lg animate-pulse" style={{ paddingBottom: '100%' }} />
-                  <div className="absolute bottom-2 left-2 bg-ink/70 text-paper-light text-[10px] px-2 py-0.5 rounded-full">
+                <a key={item.id} href={`/images/${item.id}`} className="w-20 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.url}`}
+                    alt=""
+                    className="w-full aspect-square object-cover rounded-md opacity-60"
+                  />
+                  <div className="absolute bottom-1 left-1 bg-ink/70 text-paper-light text-[9px] px-1.5 py-0.5 rounded-full">
                     processing
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           </div>
@@ -165,10 +165,18 @@ export function DashboardClient({
             <div className="text-xs font-medium text-accent mb-2">
               FAILED ({failed.length})
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div className="flex gap-2.5 flex-wrap">
               {failed.map((item) => (
-                <a key={item.id} href={`/images/${item.id}`} className="relative block">
-                  <div className="w-full bg-accent/15 rounded-lg" style={{ paddingBottom: '100%' }} />
+                <a key={item.id} href={`/images/${item.id}`} className="w-50 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.url}`}
+                    alt=""
+                    className="w-full aspect-square object-cover rounded-md"
+                  />
+                  <div className="absolute bottom-1 left-1 bg-accent/80 text-paper-light text-[9px] px-1.5 py-0.5 rounded-full">
+                    failed
+                  </div>
                 </a>
               ))}
             </div>
@@ -180,30 +188,26 @@ export function DashboardClient({
             <div className="text-xs font-medium text-slate mb-2">
               READY ({ready.length})
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div className="columns-2 sm:columns-3 lg:columns-4 gap-2.5">
               {ready.map((item) => (
-                <a 
-                  key={item.id} 
-                  href={`/images/${item.id}`} 
-                  className="group relative block bg-paper-light rounded-lg overflow-hidden border border-ink/5 hover:border-ink/20 transition-all hover:shadow-md"
+                <a
+                  key={item.id}
+                  href={`/images/${item.id}`}
+                  className="group block break-inside-avoid mb-2.5 bg-paper-light rounded-lg overflow-hidden border border-ink/5 hover:border-ink/20 transition-all hover:shadow-md"
                 >
-                  {/* Image Container */}
-                  <div 
-                    className="w-full relative overflow-hidden bg-ink/5"
-                    style={{ paddingBottom: getAspectRatioPercent(item.width, item.height) }}
-                  >
-                    {item.thumbnailUrl ? (
+                  <div className="relative">
+                    {item.thumbnailUrl && item.width && item.height ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={`${process.env.NEXT_PUBLIC_API_URL}${item.thumbnailUrl}`}
                         alt={item.title ?? 'Untitled artwork'}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ aspectRatio: `${item.width} / ${item.height}` }}
+                        className="w-full object-cover"
                       />
                     ) : (
-                      <div className="absolute inset-0 bg-ink/10" />
+                      <div className="aspect-square bg-ink/10" />
                     )}
-                    
-                    {/* Badges */}
+
                     <span className="absolute top-1.5 right-1.5 bg-ink/70 backdrop-blur-sm text-paper-light text-[9px] px-2 py-0.5 rounded-full font-medium">
                       {item.isPublic ? 'public' : 'private'}
                     </span>
@@ -214,18 +218,17 @@ export function DashboardClient({
                     )}
                   </div>
 
-                  {/* Metadata */}
                   <div className="p-2.5 sm:p-3 space-y-1">
                     {item.title && (
                       <h3 className="font-medium text-xs sm:text-sm text-ink truncate">
                         {item.title}
                       </h3>
                     )}
-                    {item.tags && item.tags.length > 0 && (
+                    {item.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {item.tags.slice(0, 2).map((tag) => (
-                          <span 
-                            key={tag} 
+                          <span
+                            key={tag}
                             className="text-[9px] sm:text-[10px] bg-ink/5 text-ink/70 px-1.5 py-0.5 rounded-full"
                           >
                             #{tag}
@@ -241,7 +244,9 @@ export function DashboardClient({
                     <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-ink/40">
                       <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                       {item.width && item.height && (
-                        <span>{item.width}×{item.height}</span>
+                        <span>
+                          {item.width}×{item.height}
+                        </span>
                       )}
                     </div>
                   </div>
