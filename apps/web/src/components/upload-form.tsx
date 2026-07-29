@@ -2,7 +2,6 @@
 
 import { useState, useRef, useTransition, useActionState, useEffect } from 'react';
 
-// Types
 interface UploadFormState {
   error: string | null;
   success: boolean;
@@ -12,28 +11,26 @@ interface UploadFormProps {
   onUploaded?: () => void;
 }
 
-// Server Action
-async function uploadFile(prevState: UploadFormState, formData: FormData): Promise<UploadFormState> {
-  try {
-    const file = formData.get('file') as File;
-    if (!file) {
-      return { error: 'Please select a file', success: false };
-    }
-
-    const response = await fetch('/api/uploads', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Upload failed' }));
-      return { error: error.message || 'Upload failed', success: false };
-    }
-
-    return { error: null, success: true };
-  } catch (error) {
-    return { error: 'An unexpected error occurred', success: false };
+async function uploadFile(
+  prevState: UploadFormState,
+  formData: FormData,
+): Promise<UploadFormState> {
+  const file = formData.get('file') as File;
+  if (!file || file.size === 0) {
+    return { error: 'Please select a file', success: false };
   }
+
+  const response = await fetch('/api/uploads', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ message: 'Upload failed' }));
+    return { error: body.message ?? 'Upload failed', success: false };
+  }
+
+  return { error: null, success: true };
 }
 
 export function UploadForm({ onUploaded }: UploadFormProps) {
@@ -43,69 +40,65 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
     success: false,
   });
 
-  // Local state
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [errorDismissed, setErrorDismissed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle file selection
-  const handleFileSelect = (file: File) => {
+  // Keeps the visible preview and the real <input>'s FileList in sync,
+  // regardless of whether the file came from a click or a drop.
+  function assignFile(file: File) {
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.files = dataTransfer.files;
+    }
     setSelectedFile(file);
-    state.error = null;
-  };
+    setErrorDismissed(false);
+  }
 
-  // Drag and drop handlers
-  const handleDrag = (e: React.DragEvent) => {
+  function handleDrag(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+    else if (e.type === 'dragleave') setDragActive(false);
+  }
 
-  const handleDrop = (e: React.DragEvent) => {
+  function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
     const file = e.dataTransfer.files?.[0];
-    if (file) handleFileSelect(file);
-  };
+    if (file) assignFile(file);
+  }
 
-  // Submit handler
-  const handleSubmit = (formData: FormData) => {
-    // Append the isPublic value directly to FormData like the original
+  function handleSubmit(formData: FormData) {
     formData.append('isPublic', String(isPublic));
     startTransition(() => {
       formAction(formData);
     });
-  };
+  }
 
-  // Handle success in useEffect instead of during render
   useEffect(() => {
     if (state.success) {
       setTitle('');
       setTags('');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      // Call the onUploaded callback if provided
       onUploaded?.();
-      // Reset success state after callback
-      state.success = false;
     }
   }, [state.success, onUploaded]);
+
+  const showError = state.error && !errorDismissed;
 
   return (
     <form
       action={handleSubmit}
       className="w-full space-y-6 rounded-xl border border-ink/10 bg-paper-light p-4 sm:p-6 md:p-8 shadow-sm transition-shadow hover:shadow-md"
     >
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h2 className="font-display text-xl sm:text-2xl font-medium text-ink">
           Upload Image
@@ -115,13 +108,12 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
         </span>
       </div>
 
-      {/* Error Message */}
-      {state.error && (
+      {showError && (
         <div className="flex items-center gap-2 rounded-lg bg-accent/10 p-3 text-sm text-accent">
           <span className="flex-1 font-sans">{state.error}</span>
           <button
             type="button"
-            onClick={() => (state.error = null)}
+            onClick={() => setErrorDismissed(true)}
             className="rounded p-0.5 hover:bg-accent/20 transition-colors"
           >
             <span className="text-lg leading-none">×</span>
@@ -129,19 +121,21 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
         </div>
       )}
 
-      {/* File Drop Zone */}
       <div
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
         className={`relative rounded-lg border-2 border-dashed transition-all ${
           dragActive
             ? 'border-accent bg-accent/5'
             : 'border-ink/20 bg-paper hover:border-ink/40'
         } min-h-35 sm:min-h-40 md:min-h-50 cursor-pointer`}
-        onClick={() => fileInputRef.current?.click()}
       >
+        {/* No `required` here — the disabled submit button already blocks
+            submission without a file, so this avoids the browser trying to
+            focus a hidden, unfocusable input for native validation. */}
         <input
           ref={fileInputRef}
           type="file"
@@ -150,14 +144,14 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) handleFileSelect(file);
+            if (file) assignFile(file);
           }}
-          required
         />
 
         {selectedFile ? (
           <div className="flex h-full flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 p-4">
             <div className="relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-lg bg-ink/5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={URL.createObjectURL(selectedFile)}
                 alt={selectedFile.name}
@@ -186,36 +180,18 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
           </div>
         ) : (
           <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-            <svg
-              className="h-10 w-10 sm:h-12 sm:w-12 text-ink/30"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.5"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
+            <svg className="h-10 w-10 sm:h-12 sm:w-12 text-ink/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p className="mt-2 font-sans text-sm font-medium text-ink/80">
-              Drop your image here
-            </p>
-            <p className="font-mono text-xs text-ink/50 mt-1">
-              or click to browse
-            </p>
+            <p className="mt-2 font-sans text-sm font-medium text-ink/80">Drop your image here</p>
+            <p className="font-mono text-xs text-ink/50 mt-1">or click to browse</p>
           </div>
         )}
       </div>
 
-      {/* Form Fields */}
       <div className="grid grid-cols-1 gap-4">
         <div>
-          <label
-            htmlFor="title"
-            className="block font-sans text-sm font-medium text-ink/80 mb-1.5"
-          >
+          <label htmlFor="title" className="block font-sans text-sm font-medium text-ink/80 mb-1.5">
             Title <span className="font-mono text-ink/40">(optional)</span>
           </label>
           <input
@@ -230,10 +206,7 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
         </div>
 
         <div>
-          <label
-            htmlFor="tags"
-            className="block font-sans text-sm font-medium text-ink/80 mb-1.5"
-          >
+          <label htmlFor="tags" className="block font-sans text-sm font-medium text-ink/80 mb-1.5">
             Tags <span className="font-mono text-ink/40">(comma separated)</span>
           </label>
           <input
@@ -248,7 +221,6 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
         </div>
       </div>
 
-      {/* Visibility Checkbox - Matching Original Design */}
       <label className="flex items-center gap-2 font-sans text-sm text-ink/80 cursor-pointer">
         <input
           type="checkbox"
@@ -259,7 +231,6 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
         Show on public gallery
       </label>
 
-      {/* Submit Button */}
       <button
         type="submit"
         disabled={isPending || !selectedFile}
@@ -271,42 +242,16 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
       >
         {isPending ? (
           <>
-            <svg
-              className="h-4 w-4 animate-spin"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
+            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             Uploading...
           </>
         ) : (
           <>
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
             Upload Image
           </>
