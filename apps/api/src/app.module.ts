@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { BullModule } from '@nestjs/bullmq';
+import { ThrottlerModule, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -14,6 +16,14 @@ import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: seconds(60),
+          limit: 60,
+        },
+      ],
+    }),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST,
@@ -29,6 +39,13 @@ import { EmailModule } from './email/email.module';
     EmailModule,
   ],
   controllers: [AppController, GalleryController],
-  providers: [AppService, GalleryService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    GalleryService,
+  ],
 })
 export class AppModule {}

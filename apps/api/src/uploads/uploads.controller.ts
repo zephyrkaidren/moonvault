@@ -12,6 +12,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Throttle, seconds } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -38,6 +39,7 @@ const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
 export class UploadsController {
   constructor(private uploadsService: UploadsService) {}
 
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
