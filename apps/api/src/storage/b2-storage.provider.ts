@@ -4,6 +4,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  ListObjectVersionsCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { StorageProvider, UploadResult } from './storage-provider.interface';
@@ -58,8 +59,25 @@ export class B2StorageProvider implements StorageProvider {
   }
 
   async delete(key: string): Promise<void> {
-    await this.client.send(
-      new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+    const versions = await this.client.send(
+      new ListObjectVersionsCommand({ Bucket: this.bucket, Prefix: key }),
+    );
+
+    const toDelete = [
+      ...(versions.Versions ?? []),
+      ...(versions.DeleteMarkers ?? []),
+    ].filter((v) => v.Key === key);
+
+    await Promise.all(
+      toDelete.map((v) =>
+        this.client.send(
+          new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+            VersionId: v.VersionId,
+          }),
+        ),
+      ),
     );
   }
 }

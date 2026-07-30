@@ -155,6 +155,10 @@ export class UploadsService {
     }
 
     await this.storageProvider.delete(image.storageKey);
+    if (image.thumbnailKey) {
+      await this.storageProvider.delete(image.thumbnailKey);
+    }
+
     await this.prisma.image.delete({ where: { id: imageId } });
     await this.storageService.decrementStorageUsed(
       requestingUserId,
