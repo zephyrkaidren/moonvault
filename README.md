@@ -4,7 +4,7 @@
 
 Store your illustrations privately, at full quality and true aspect ratio, and choose which pieces to share on a public, browsable gallery - complete with tags, bookmarks, and rankings.
 
-[![CI](https://github.com/codebyrashel/moonvault/actions/workflows/ci.yml/badge.svg)](https://github.com/codebyrashel/moonvault/actions/workflows/ci.yml)
+[![CI](https://github.com/zephyrkaidren/moonvault/actions/workflows/ci.yml/badge.svg)](https://github.com/zephyrkaidren/moonvault/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white)
@@ -127,8 +127,8 @@ moonvault/
 - [x] Upload, processing pipeline (thumbnails, EXIF, duplicate detection)
 - [x] Public gallery, bookmarks, tags, ranking
 - [x] Frontend: auth pages, dashboard, gallery, artist profiles
-- [ ] Production-grade auth hardening (password reset, stronger validation)
-- [ ] Finalized cloud storage backend
+- [x] Production-grade auth hardening (password reset, stronger validation)
+- [x] Finalized cloud storage backend
 - [ ] Deployment
 
 ## License
