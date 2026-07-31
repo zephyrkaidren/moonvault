@@ -86,7 +86,7 @@ export default async function HomePage() {
         <TagCarousel tags={tagGroups} />
       ) : (
         <p className="text-center text-sm text-slate py-14">
-          No public art yet — be the first to share something.
+          No public art yet - be the first to share something.
         </p>
       )}
     </div>
