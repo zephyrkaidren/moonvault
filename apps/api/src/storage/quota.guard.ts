@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { StorageService } from '../storage.service';
+import { StorageService } from './storage.service';
 import { JwtUser } from '../auth/types/types';
 
 interface RequestWithUser extends Request {

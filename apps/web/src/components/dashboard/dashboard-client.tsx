@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Avatar } from './avatar';
+import { Avatar } from '../profile/avatar';
 import { UploadForm } from './upload-form';
 import { resolveImageUrl } from '@/lib/resolve-image-url';
 

@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { serverFetch } from '@/lib/api';
-import { GalleryFeed } from '@/components/gallery-feed';
-import { ArtistBanner } from '@/components/artist-banner';
+import { GalleryFeed } from '@/components/gallery/gallery-feed';
+import { ArtistBanner } from '@/components/profile/artist-banner';
 
 interface ArtistData {
   id: string;

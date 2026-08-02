@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PasswordStrength } from '@/components/password-strength';
+import { PasswordStrength } from '@/components/auth/password-strength';
 import { extractErrorMessages } from '@/lib/error-message';
 
 export function ResetPasswordForm() {

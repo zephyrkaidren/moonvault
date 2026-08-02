@@ -1,6 +1,6 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { QuotaGuard } from './quota.guard';
-import { StorageService } from '../storage.service';
+import { StorageService } from './storage.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 function createMockContext(

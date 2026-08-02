@@ -1,9 +1,9 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtUser } from '../auth/types/types';
 import { StorageService } from './storage.service';
-import { UploadsService } from './uploads/uploads.service';
-import { JwtUser } from './auth/types/types';
+import { UploadsService } from '../uploads/uploads.service';
 
 interface RequestWithUser extends Request {
   user: JwtUser;

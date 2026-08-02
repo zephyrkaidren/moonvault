@@ -1,5 +1,5 @@
 import { serverFetch } from '@/lib/api';
-import { ImageWithLoader } from '@/components/image-with-loader';
+import { ImageWithLoader } from '@/components/image/image-with-loader';
 import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface RankingItem {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ImageWithLoader } from './image-with-loader';
+import { ImageWithLoader } from '../image/image-with-loader';
 import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface GalleryItem {

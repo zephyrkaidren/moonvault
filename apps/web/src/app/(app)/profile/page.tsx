@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { serverFetch } from '@/lib/api';
-import { GalleryFeed } from '@/components/gallery-feed';
-import { ArtistBanner } from '@/components/artist-banner';
+import { GalleryFeed } from '@/components/gallery/gallery-feed';
+import { ArtistBanner } from '@/components/profile/artist-banner';
 
 export default async function ProfilePage() {
   const meRes = await serverFetch('/auth/me');

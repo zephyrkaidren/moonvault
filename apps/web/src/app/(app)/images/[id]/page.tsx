@@ -1,8 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
 import { serverFetch } from '@/lib/api';
-import { BookmarkButton } from '@/components/bookmark-button';
-import { ImageOwnerControls } from '@/components/image-owner-controls';
-import { ImageWithLoader } from '@/components/image-with-loader';
+import { BookmarkButton } from '@/components/image/bookmark-button';
+import { ImageOwnerControls } from '@/components/image/image-owner-controls';
+import { ImageWithLoader } from '@/components/image/image-with-loader';
 import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface ExifData {

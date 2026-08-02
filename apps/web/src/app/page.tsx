@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { TagCarousel } from '@/components/tag-carousel';
+import { TagCarousel } from '@/components/gallery/tag-carousel';
 
 interface TagCount {
   name: string;

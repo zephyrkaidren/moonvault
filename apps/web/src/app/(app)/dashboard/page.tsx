@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { serverFetch } from '@/lib/api';
-import { DashboardClient } from '@/components/dashboard-client';
+import { DashboardClient } from '@/components/dashboard/dashboard-client';
 
 export default async function DashboardPage() {
   const [profileRes, storageRes, uploadsRes] = await Promise.all([

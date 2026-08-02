@@ -1,6 +1,6 @@
 import { serverFetch } from '@/lib/api';
-import { GalleryFeed } from '@/components/gallery-feed';
-import { GalleryFilterBar } from '@/components/gallery-filter-bar';
+import { GalleryFeed } from '@/components/gallery/gallery-feed';
+import { GalleryFilterBar } from '@/components/gallery/gallery-filter-bar';
 
 export default async function GalleryPage({
   searchParams,

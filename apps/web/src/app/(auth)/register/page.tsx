@@ -1,4 +1,4 @@
-import { RegisterForm } from '@/components/register-form';
+import { RegisterForm } from '@/components/auth/register-form';
 import { resolveImageUrl } from '@/lib/resolve-image-url';
 
 interface PreviewItem {

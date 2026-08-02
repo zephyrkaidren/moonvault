@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { StorageService } from '../storage.service';
+import { StorageService } from '../storage/storage.service';
 import {
   STORAGE_PROVIDER,
   type StorageProvider,

@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { LogoutButton } from '@/components/logout-button';
+import { LogoutButton } from '@/components/layout/logout-button';
 
 export default async function AppLayout({
   children,

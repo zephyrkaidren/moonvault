@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Avatar, colorForId } from './avatar';
-import { EditDisplayNameForm } from './edit-display-name-form';
-import { ChangePasswordForm } from './change-password-form';
+import { EditDisplayNameForm } from '../auth/edit-display-name-form';
+import { ChangePasswordForm } from '../auth/change-password-form';
 
 interface ArtistBannerProps {
   id: string;
